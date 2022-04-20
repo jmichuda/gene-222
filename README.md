@@ -56,7 +56,7 @@
     e. I succesfully uploaded the files to GCS. Screenshot below:
     ![screenshot of gcs](./fastq_uploads.png)
     
-    f. I succesfully executed the bwa image usng dsub.
+    f. I succesfully executed the bwa image using dsub.
     
     Here's an example of the command that I ran:
 
