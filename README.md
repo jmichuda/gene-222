@@ -46,11 +46,16 @@
 
 5. 
     a. I succesfully installed dsub
+    
     b. I successfully enabled the APIs
+    
     c. I succesfully downloaded the files from the public bucket (this took a while!)
+    
     d. I succesfully installed and subsetted the fastq files.
+    
     e. I succesfully uploaded the files to GCS. Screenshot below:
     ![screenshot of gcs](./fastq_uploads.png)
+    
     f. I succesfully executed the bwa image usng dsub.
     
     Here's an example of the command that I ran:
@@ -68,7 +73,7 @@
     --image pegi3s/bwa \
     --command 'bwa mem -t 8 -M -R "@RG\\tID:0\\tLB:Library\\tPL:Illumina\\tSM:" "${REFERENCE}"/GRCh37-lite.fa "${FASTQ_INPUT}"/ERR194159_1.fastq "${FASTQ_INPUT}"/ERR194159_2.fastq > "$(dirname ${OUTPUT_FILE})"/bwa-sam.sam'
     ```
-    I modified this command 5 times, each time replacing the number of threads and the machine type to correspond to the particular parallel configuration that I was trying to execute. Here's the table:
+    I modified this command 5 times, each time replacing the number of threads and the machine type to correspond to the particular parallel configuration that I was trying to execute. I then ran the provided `dstat` commands in order to find a path to the log file on GCS, which I manually searched through to find the execution time of the bwa process. Here's the table:
 
     | Machine  | Threads | Execution Time | Speed Up | Efficiency | Log file |
     | -------- | ---- | ------- |------------|----|---|
@@ -78,5 +83,9 @@
     | n1-standard-8 | 8 | 12.558 | 6.8713 | 0.8589 | gs://gene-222/hw1q5/log/bwa--jack-michuda--220420-025041-13.log |
     | n1-standard-16 |16| 8.781  | 9.8270 | 0.6141 | gs://gene-222/hw1q5/log/bwa--jack-michuda--220420-033551-59.log |
 
-    And here is a plot showing the performance as a function of the number of threads:
+    After generating the data, I wrote a [short python script](./plot_bwa_experiment.py) to visualize the performance as a function of the number of threads. The command that I used to generate this image is `python ./plot_bwa_experiment.py`
     ![bwa experiment plot](./bwa_experiment.png)
+    
+    g. The n1-standard-1 machines do not have enough memory in order to execute the bwa command.
+    
+    If I were to expand this analysis, I would probably want to consider the total run-time of the process, including startup and shutdown of the machines, in order to make a more accurate judgement of the efficiency gains from parallelization. It would also be nice to write some automation to pull in the run times, rather than having to manually crawl through the logs to see how long a process took. But this is just a toy example with a subset of the data and it was a pretty cool learning experience!
