@@ -51,7 +51,7 @@ The second cloud function to annotate the VCF once it is triggered by pubsub is 
 
 The final annotated output is available [here](./1000g_APC-apc-gene-annotations.txt)
 
-And the requirements.txt for both cloud functions is [here] (./requirements.txt)
+And the requirements.txt for both cloud functions is [here](./requirements.txt)
 
 
 
