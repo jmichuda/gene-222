@@ -1,6 +1,11 @@
 # HW2
 
 ## Q1
+#### Part A:
+I was able to successfully run the cromwell pipeline. It produced the [VCF file here](./output_tumor-filtered.vcf)
+
+#### Part B:
+
 After running the cromwell pipeline and uploading the results into bigquery, I used the following query to perform the annotation:
 ```
 SELECT 
@@ -34,6 +39,17 @@ It generated the CSV [here](./annotated_variants.tsv)
 
 ## Q2 
 
+#### Part A
+I obtained access to the datasets
+
+#### Part B:
+The DDL for the following three tables are here:
+- [One csv table](./test1000vcf_oneCSV_hw2.sql)
+- [Partitioned csv table](./g1000vcf_partioned_csv_hw2.sql)
+- [Partitioned parquet table](./g1000vcf_parquet_hw2.sql)
+
+
+#### Parts C and D
 
 | Query | Query |  Runtime and Data Scanned | Cost |
 | - | - | -| -| 
@@ -44,7 +60,17 @@ It generated the CSV [here](./annotated_variants.tsv)
 | E | SELECT * FROM "g1000vcf_partioned_csv_hw2" WHERE chromosome='16' AND start_position=53820526; | Run time: 2.27 sec Data scanned: 413.20 MB | .2 cents|
 | F | SELECT * FROM "g1000vcf_parquet_hw2" WHERE chromosome='16' AND start_position=53820526;| Run time: 2.409 sec Data scanned: 122.03 MB | .06 cents| 
 
+#### Part D: (calculate the cost of each query) 
+It in the table above. It assumes that the cost is $5/tb data scanned as reported on the Athena website.
+
+#### Part E
+We can make two inferences. First, the use of parquet format reduces the amount of data scanned in all cases because it’s a more efficient encoding than CSVs. Second, using chromosome as a partition reduces the amount of data that is scanned when we include `chromosome` in the query, but not when we are querying for `rsid`.
+
+
+
 ## Q3
+
+#### Part A: 
 The first cloud function to unload the VCF into BigQuery is available [here](./import_vcf.py)
 
 The second cloud function to annotate the VCF once it is triggered by pubsub is [here](./annotate_vcf.py)
@@ -53,6 +79,9 @@ The final annotated output is available [here](./1000g_APC-apc-gene-annotations.
 
 And the requirements.txt for both cloud functions is [here](./requirements.txt)
 
+#### Part B:
+The main drawback is that we cloud functions are supposed to be fast acting. By default they timeout after 9 minutes. Also, while cloud functions supports many environments, it does not offer the same flexibility to create an environment as Docker does.
 
-
+#### Part C:
+If we have a function that is long-running, we should decompose it into shorter, more modular steps and make each of the steps its own cloud function. This also allows us to optimize each step's hardware requirements individually, potentially saving costs. If we have a process that has a complicated environment, we should consider building a containerized workflow and using a PubSub to launch the workflow on GKE or some other source of compute. 
 
