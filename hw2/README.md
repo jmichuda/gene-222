@@ -30,4 +30,4 @@ ON
   AND V.reference_name = A1.reference_name;
 ```
 
-It generated the CSV [here](./annotated_variants.csv)`
+It generated the CSV [here]('./annotated_variants.csv')
