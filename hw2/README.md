@@ -30,4 +30,29 @@ ON
   AND V.reference_name = A1.reference_name;
 ```
 
-It generated the CSV [here]('./annotated_variants.csv')
+It generated the CSV [here](./annotated_variants.tsv)
+
+## Q2 
+
+
+| Query | Query |  Runtime and Data Scanned | Cost |
+| - | - | -| -| 
+| A | SELECT * FROM "test1000vcf_oneCSV_hw2" WHERE rsid='rs9939609'| Run time: 3.13 sec Data scanned: 12.68 GB | 6.3 cents |
+| B | SELECT * FROM "g1000vcf_partioned_csv_hw2" WHERE rsid='rs9939609'| Run time: 4.59 sec Data scanned: 12.68 GB | 6.3 cents |
+| C | SELECT * FROM "g1000vcf_parquet_hw2" WHERE rsid='rs9939609'| Run time: 3.689 sec Data scanned: 784.69 MB | .3 cents |
+| D | SELECT * FROM "test1000vcf_oneCSV_hw2" WHERE chrm='16' and start_position=53820526| Run time: 2.415 sec Data scanned: 12.68 GB | 6 cents | 
+| E | SELECT * FROM "g1000vcf_partioned_csv_hw2" WHERE chromosome='16' AND start_position=53820526; | Run time: 2.27 sec Data scanned: 413.20 MB | .2 cents|
+| F | SELECT * FROM "g1000vcf_parquet_hw2" WHERE chromosome='16' AND start_position=53820526;| Run time: 2.409 sec Data scanned: 122.03 MB | .06 cents| 
+
+## Q3
+The first cloud function to unload the VCF into BigQuery is available [here](./import_vcf.py)
+
+The second cloud function to annotate the VCF once it is triggered by pubsub is [here](./annotate_vcf.py)
+
+The final annotated output is available [here](./1000g_APC-apc-gene-annotations.txt)
+
+And the requirements.txt for both cloud functions is [here] (./requirements.txt)
+
+
+
+
