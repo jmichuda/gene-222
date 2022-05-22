@@ -1,9 +1,9 @@
 #!/bin/bash
 
 export READS=20000
-export BWA_THREADS=2
+export BWA_THREADS=8
 
-if [ ! -f ./ERR194159_1.fastq.gz]
+if [ ! -f ./ERR194159_1.fastq.gz ]
 then
     echo "Downloading file from GCS, this will take a while"
     gsutil cp gs://genomics-public-data/platinum-genomes/fastq/ERR194159_1.fastq.gz ./
@@ -11,7 +11,7 @@ else
     echo "File found. Skipping download"
 fi
 
-if [ ! -f ./ERR194159_2.fastq.gz]
+if [ ! -f ./ERR194159_2.fastq.gz ]
 then
     echo "Downloading file from GCS, this will take a while"
     gsutil cp gs://genomics-public-data/platinum-genomes/fastq/ERR194159_2.fastq.gz ./
@@ -20,17 +20,30 @@ else
 fi
 
 echo "Downsampling FASTQ file"
-seqtk sample -s100 ERR194159_1.fastq.gz $READS > downsampled_file1.fastq
-seqtk sample -s100 ERR194159_2.fastq.gz $READS > downsampled_file2.fastq
 
-gsutil cp downsampled_file1.fastq  gs://gene222-final-project/fastq_$READS_$BWA_THREADS/downsampled_file1.fastq
-gsutil cp downsampled_file2.fastq  gs://gene222-final-project/fastq_$READS_$BWA_THREADS/downsampled_file2.fastq
+if [ ! -f ./downsampled_file1_$READS.fastq ]
+then
+    echo "Downsampling, this will take a while"
+	seqtk sample -s100 ERR194159_1.fastq.gz $READS > downsampled_file1_$READS.fastq
+else
+    echo "File found. Skipping downsample"
+fi
+if [ ! -f ./downsampled_file2_$READS.fastq ]
+then
+    echo "Downsampling, this will take a while"
+	seqtk sample -s100 ERR194159_2.fastq.gz $READS > downsampled_file2_$READS.fastq
+else
+    echo "File found. Skipping downsample"
+fi
+
+gsutil cp downsampled_file1_$READS.fastq  gs://gene222-final-project/fastq_$READS_$BWA_THREADS/downsampled_file1_$READS.fastq
+gsutil cp downsampled_file2_$READS.fastq  gs://gene222-final-project/fastq_$READS_$BWA_THREADS/downsampled_file2_$READS.fastq
 
 # Enable exit on error
 set -o errexit
 
 # Step 1:
-dsub --provider google-v2 --project gene222-final-project --zones "us-central1-*" --logging gs://gene222-final-project/Logging_$READS --input-recursive FASTQ_INPUT=gs://gene222-final-project/fastq_$READS_$BWA_THREADS --input-recursive REFERENCE=gs://gene222_datasets_references/REFERENCE_GRCH37 --output OUTPUT_FILE=gs://gene222-final-project/output/OUTPUT_BWA_$READS_$BWA_THREADS/* --machine-type n1-standard-$BWA_THREADS --image pegi3s/bwa --command 'bwa mem -t 4 -M -R "@RG\\tID:0\\tLB:Library\\tPL:Illumina\\tSM:" "${REFERENCE}"/GRCh37-lite.fa "${FASTQ_INPUT}"/downsampled_file1.fastq "${FASTQ_INPUT}"/downsampled_file2.fastq > "$(dirname ${OUTPUT_FILE})"/bwa-sam.sam' --wait
+dsub --provider google-v2 --project gene222-final-project --zones "us-central1-*" --logging gs://gene222-final-project/Logging_$READS --input-recursive FASTQ_INPUT=gs://gene222-final-project/fastq_$READS_$BWA_THREADS --input-recursive REFERENCE=gs://gene222_datasets_references/REFERENCE_GRCH37 --output OUTPUT_FILE=gs://gene222-final-project/output/OUTPUT_BWA_$READS_$BWA_THREADS/* --machine-type n1-standard-$BWA_THREADS --image pegi3s/bwa --command 'bwa mem -t $BWA_THREADS -M -R "@RG\\tID:0\\tLB:Library\\tPL:Illumina\\tSM:" "${REFERENCE}"/GRCh37-lite.fa "${FASTQ_INPUT}"/downsampled_file1_$READS_$READS.fastq "${FASTQ_INPUT}"/downsampled_file2_$READS.fastq > "$(dirname ${OUTPUT_FILE})"/bwa-sam.sam' --wait
 
 
 #Step 2 - convert the SAM file to a BAM file:
